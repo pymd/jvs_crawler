@@ -7,9 +7,9 @@ import sys
 from config import BASE_URL
 from tasks import save_urls_to_db
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from jvs_crawler import get_celery_status
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 logger = logging.getLogger('')
 
 

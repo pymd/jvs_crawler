@@ -7,9 +7,9 @@ from config import STATUS_NEW, STATUS_PROCESSING
 from models import NavigationUrl, User, UserDetails
 from uid_crawler import UidCrawler
 from profile_crawler import ProfileCrawler
-from jvs_crawler import DBSession
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from jvs_crawler import DBSession
 
 app = Celery('tasks', broker='amqp://localhost//')
 
