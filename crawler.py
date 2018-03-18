@@ -55,7 +55,7 @@ class UrlCrawler:
         save_urls_to_db.delay(self.top_level_groom_urls)
 
         print('Finding more bride urls ...')
-        #self.fetch_all_bride_urls()
+        self.fetch_all_bride_urls()
         print('Done')
 
         print('Finding more groom urls ...')
