@@ -2,9 +2,10 @@ from bs4 import BeautifulSoup
 import requests
 import logging
 
-from config import BASE_URL
+# from config import BASE_URL
 
 logger = logging.getLogger(__file__)
+
 
 class UidCrawler:
     def __init__(self):
@@ -26,8 +27,4 @@ class UidCrawler:
             usernames.append(username)
 
         print(len(usernames))
-        return usernames    
-
-
-
-
+        return usernames

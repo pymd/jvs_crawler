@@ -1,15 +1,17 @@
 from bs4 import BeautifulSoup
 import requests
 import logging
+import os
+import sys
 
 from config import BASE_URL
 from tasks import save_urls_to_db
 
-import os, sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from jvs_crawler import *
+from jvs_crawler import get_celery_status
 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 logger = logging.getLogger('')
+
 
 class UrlCrawler:
     """
@@ -25,7 +27,7 @@ class UrlCrawler:
     def crawl(self):
         # Fetch all the links from the footer navigation bar
         print('Starting crawler for url: ' + self.url)
-        try:    
+        try:
             resp = requests.get(self.url)
             html = resp.text
         except Exception as e:
@@ -35,22 +37,22 @@ class UrlCrawler:
         soup = BeautifulSoup(html, 'html.parser')
         categories = soup.find_all('div', class_='subhobver')
 
-
         for category in categories:
             links = category.find('div', class_='hpbg5 wr1 pos-rel')
             links_list = links.find_all('a')
             bride_element = links_list[0]
             groom_element = links_list[1]
-            
+
             self.top_level_bride_urls.append(bride_element['href'])
             self.top_level_groom_urls.append(groom_element['href'])
-            
 
-        print('Found %s top level bride urls' % str(len(self.top_level_bride_urls)))
+        print('Found %s top level bride urls' %
+              str(len(self.top_level_bride_urls)))
         print('Saving them to database ...')
         save_urls_to_db.delay(self.top_level_bride_urls)
 
-        print('Found %s top level groom urls' % str(len(self.top_level_groom_urls)))
+        print('Found %s top level groom urls' %
+              str(len(self.top_level_groom_urls)))
         print('Saving them to database ...')
         save_urls_to_db.delay(self.top_level_groom_urls)
 
@@ -110,11 +112,8 @@ if __name__ == '__main__':
     # Setup DB Connections; If not raise exception; halt (__init__.py)
     # Create Database tables if not present
     # Check if Celery is working; If not throw exception; halt (__init__.py)
-    
     # Create Crawler Object
     # Call crawler.crawl() method to start crawling
     print(get_celery_status())
     crawler = UrlCrawler()
     crawler.crawl()
-
-

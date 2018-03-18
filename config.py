@@ -1,5 +1,4 @@
 # File containing a list of constants to be used across the application
-import logging
 
 BASE_URL = 'https://www.jeevansathi.com'
 CELERY_WORKER_COUNT = 5

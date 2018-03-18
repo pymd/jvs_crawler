@@ -1,14 +1,15 @@
 from celery import Celery
 import time
-    
-from config import STATUS_NEW, STATUS_PROCESSING, STATUS_DONE
+import os
+import sys
+
+from config import STATUS_NEW, STATUS_PROCESSING
 from models import NavigationUrl, User, UserDetails
 from uid_crawler import UidCrawler
 from profile_crawler import ProfileCrawler
+from jvs_crawler import DBSession
 
-import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from jvs_crawler import *
 
 app = Celery('tasks', broker='amqp://localhost//')
 
@@ -25,6 +26,7 @@ app.conf.task_routes = {
 }
 
 # Contains all the celery tasks (functions to be called asynchronously)
+
 
 @app.task
 def taskname(arg):
@@ -77,7 +79,7 @@ def save_urls_to_db(url_list):
     for url in urls:
         try:
             # Check if already in db
-            navigation_url = DBSession.query(NavigationUrl).filter(NavigationUrl.hash==hash(url))
+            navigation_url = DBSession.query(NavigationUrl).filter(NavigationUrl.hash == hash(url))
             if (navigation_url is not None) and navigation_url.count() == 1:
                 print('Found url: %s in DB' % str(url))
                 url_id = navigation_url.first().id
@@ -112,15 +114,15 @@ def get_users(url_id):
         return
     print('Fetching users from url_id: ' + str(url_id))
     try:
-        q = DBSession.query(NavigationUrl).filter(NavigationUrl.id==url_id)
+        q = DBSession.query(NavigationUrl).filter(NavigationUrl.id == url_id)
         if q and q.count() == 1:
-            
+
             # Get the url to fetch from and change its status in DB
             obj = q.first()
             url = obj.url
             print('Url object returned from DB is: ' + url)
             if obj.status == STATUS_NEW:
-                q.update({'status' : STATUS_PROCESSING})
+                q.update({'status': STATUS_PROCESSING})
                 DBSession.commit()
             else:
                 print('URL already processing/processed')
@@ -131,7 +133,7 @@ def get_users(url_id):
             usernames = UidCrawler.get_usernames(url=url)
 
             # Insert usernames to DB and update status of URL in DB
-            #print('No of users:' + str(len(usernames)))
+            # print('No of users:' + str(len(usernames)))
             print('Usernames: ' + str(list(usernames)))
             save_usernames_to_db.delay(usernames)
 
@@ -140,6 +142,7 @@ def get_users(url_id):
             raise Exception('No such url_id: %s found in database' % str(url_id))
     except Exception as e:
         print(str(e))
+
 
 @app.task
 def save_usernames_to_db(usernames):
@@ -157,7 +160,7 @@ def save_usernames_to_db(usernames):
     for username in usernames:
         try:
             # Check if already in db
-            user = DBSession.query(User).filter(User.username==username)
+            user = DBSession.query(User).filter(User.username == username)
             if (user is not None) and user.count() == 1:
                 print('Found user: %s in DB' % str(username))
                 uid = user.first().id
@@ -171,11 +174,12 @@ def save_usernames_to_db(usernames):
             get_profile.delay(uid)
 
         except Exception as e:
-            print('Exception saving user: %s. Error: %s' % (username,str(e)))
+            print('Exception saving user: %s. Error: %s' % (username, str(e)))
             DBSession.rollback()
     print(
         "SQLAlchemy ORM: Total time for " + str(n) +
         " usernames " + str(time.time() - t0) + " secs")
+
 
 @app.task
 def get_profile(uid):
@@ -191,15 +195,15 @@ def get_profile(uid):
         return
     print('Fetching profile for user with uid: ' + str(uid))
     try:
-        q = DBSession.query(User).filter(User.id==uid)
+        q = DBSession.query(User).filter(User.id == uid)
         if q and q.count() == 1:
-            
+
             # Get the username to fetch from and change its status in DB
             obj = q.first()
             username = obj.username
             print('User object returned from DB is: %s' % str(username))
             if obj.status == STATUS_NEW:
-                q.update({'status' : STATUS_PROCESSING})
+                q.update({'status': STATUS_PROCESSING})
                 DBSession.commit()
             else:
                 print('Username already processing/processed')
@@ -226,7 +230,7 @@ def save_profile_to_db(uid, details):
     print('Saving profile for user: %s' % str(uid))
 
     try:
-        user_details = DBSession.query(UserDetails).filter(UserDetails.uid==uid)
+        user_details = DBSession.query(UserDetails).filter(UserDetails.uid == uid)
         if user_details is not None and user_details.count() == 1:
             print('Profile already exists in DB')
         else:
@@ -238,14 +242,14 @@ def save_profile_to_db(uid, details):
             occupation = details.get('Profession', '')
             education = details.get('Education', '')
 
-            user_details = UserDetails(name=name, gender=gender, age=age, 
-                religion=religion, marital_status=marital_status,
-                occupation=occupation,education=education,uid=uid)
+            user_details = UserDetails(name=name, gender=gender, age=age,
+                                       religion=religion, marital_status=marital_status,
+                                       occupation=occupation, education=education, uid=uid)
             DBSession.add(user_details)
             DBSession.commit()
-            #user_id = user_details.id
+            # user_id = user_details.id
     except Exception as e:
-        print('Exception saving user-profile details: %s. Error: %s' % (uid,str(e)))
+        print('Exception saving user-profile details: %s. Error: %s' % (uid, str(e)))
         DBSession.rollback()
 
     print(
