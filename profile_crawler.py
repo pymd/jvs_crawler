@@ -1,24 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from config import MYSQL_PARAMS, BASE_URL
-
-def database_connection(query):
-    import MySQLdb
-    db = MySQLdb.connect(
-            host=MYSQL_PARAMS['HOSTNAME'],
-            user=MYSQL_PARAMS['USERNAME'],
-            passwd=MYSQL_PARAMS['PASSWORD'],
-            db=MYSQL_PARAMS['DBNAME']
-         )
-    cursor = db.cursor()
-    cursor.execute(query)
-    data = cursor.fetch()
-    db.close()
-    return data
-
-def get_username():
-    users = database_connection('Select * from user');  
-    return users
+from config import BASE_URL
 
 class ProfileCrawler:
     def __init__(self, username=None):

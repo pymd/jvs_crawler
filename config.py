@@ -13,11 +13,4 @@ STATUS_PROCESSING = 'processing'
 STATUS_DONE = 'done'
 STATUS_ERROR = 'error'
 
-MYSQL_PARAMS = {
-    'HOSTNAME': 'localhost',
-    'USERNAME': 'testuser',
-    'PASSWORD': 'apg',
-    'DBNAME': 'jvs',
-}
-
 DB_CONNECTION_STRING = 'mysql://root:apg@localhost/jvs'
